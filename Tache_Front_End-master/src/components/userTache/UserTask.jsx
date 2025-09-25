@@ -125,7 +125,7 @@ export default function UserTache() {
           {/* <DeleteTask></DeleteTask> */}
 
           {/* Tasks List */}
-          <div className="max-h-96 overflow-y-auto space-y-4">
+          <div className="">
             <UserTaskList></UserTaskList>
           </div>
 

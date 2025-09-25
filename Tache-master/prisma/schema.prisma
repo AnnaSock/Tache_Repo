@@ -21,6 +21,7 @@ model Taches {
   audioPath     String?
   dateDebut     DateTime?
   dateFin       DateTime?
+  image         String?
   statut        Etat?        @default(EN_COURS)
   utilisateurId Int
   utilisateur   Utilisateur  @relation(fields: [utilisateurId], references: [id])

@@ -37,10 +37,11 @@ export class TacheController {
 
     // Recuperer audioPath depuis req.file si upload Multer
     const audioPath = req.file ? req.file.path : null;
-
+    const image= req.file ?  req.file.path : null
     const data = {
       ...tacheValide,
       audioPath,
+      image,
       dateDebut: req.body.dateDebut ? new Date(req.body.dateDebut) : null,
       dateFin: req.body.dateFin ? new Date(req.body.dateFin) : null,
       utilisateurId: user.id,

@@ -1,6 +1,6 @@
-# Mini_framework_express
+# Tache-Back-end
 
-Ce projet est un mini framework basé sur **Express.js**, **TypeScript** et **Prisma** pour la gestion de tâches et d'utilisateurs. Il propose une structure simple, évolutive et professionnelle pour démarrer rapidement une API RESTful connectée à une base de données MySQL.
+Ce projet est une API backend développée avec **Express.js**, **TypeScript** et **Prisma** pour la gestion de tâches, d'utilisateurs, de permissions et d'historique. Il inclut également la gestion des téléchargements de fichiers (images et audio). L'API est conçue pour être simple, évolutive et professionnelle, connectée à une base de données MySQL.
 
 ---
 
@@ -27,14 +27,16 @@ Ce projet est un mini framework basé sur **Express.js**, **TypeScript** et **Pr
 - **Structure repository/service/controller** pour une séparation claire des responsabilités.
 - **Validation des données** avec Zod.
 - **Authentification JWT** pour sécuriser les routes.
-- **Gestion des utilisateurs et des tâches** (CRUD complet).
+- **Gestion des utilisateurs, tâches, permissions et historique** (CRUD complet).
+- **Téléchargement de fichiers** (images et audio) avec Multer.
+- **Historique des actions** sur les tâches.
 
 ---
 
 ## Architecture du projet
 
 ```
-tache/
+tache-back-end/
 ├── src/
 │   ├── config/           # Chargement des variables d'environnement
 │   ├── controllers/      # Logique des routes (contrôleurs)
@@ -47,7 +49,9 @@ tache/
 │   └── index.ts          # Point d'entrée principal de l'application
 ├── prisma/
 │   ├── schema.prisma     # Modèle de données Prisma
+│   ├── seed.ts           # Script de seeding
 │   └── migrations/       # Dossiers de migration SQL
+├── uploads/              # Dossier pour les fichiers téléchargés
 ├── .env                  # Variables d'environnement (à ne pas versionner)
 ├── .env.example          # Exemple de variables d'environnement
 ├── package.json          # Dépendances et scripts npm
@@ -62,7 +66,7 @@ tache/
 1. **Cloner le dépôt**
     ```bash
     git clone <repo-url>
-    cd tache
+    cd tache-back-end
     ```
 
 2. **Installer les dépendances**
@@ -97,36 +101,83 @@ tache/
 
 ## Modèle de données
 
-Le projet gère deux entités principales : **Utilisateur** et **Taches**.
+Le projet gère quatre entités principales : **Utilisateur**, **Taches**, **Permission** et **Historique**.
 
 ```prisma
-model Utilisateur {
-  id        Int     @id @default(autoincrement())
-  nom       String
-  prenom    String
-  email     String  @unique
-  adresse   String?
-  photo     String?
-  login     String  @unique
-  password  String
-  telephone String?
-  genre     String
-  tache     Taches[]
-}
-
 model Taches {
-  id            Int         @id @default(autoincrement())
-  titre         String
+  id            Int          @id @default(autoincrement())
+  titre         String?
   description   String?
-  statut        Etat        @default(EN_COURS)
+  audioPath     String?
+  dateDebut     DateTime?
+  dateFin       DateTime?
+  image         String?
+  statut        Etat?        @default(EN_COURS)
   utilisateurId Int
-  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id])
+  utilisateur   Utilisateur  @relation(fields: [utilisateurId], references: [id])
+  permission    Permission[]
+  historique    Historique[]
 }
 
 enum Etat {
   EN_COURS
   TERMINER
   A_FAIRE
+}
+
+model Utilisateur {
+  id         Int          @id @default(autoincrement())
+  nom        String
+  prenom     String
+  email      String       @unique
+  adresse    String?
+  photo      String?
+  login      String       @unique
+  password   String       @unique
+  telephone  Int?         @unique
+  genre      Genre?
+  tache      Taches[]
+  permission Permission[]
+  historique Historique[]
+}
+
+model Permission {
+  id            Int         @id @default(autoincrement())
+  utilisateurId Int
+  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id])
+
+  tacheId Int
+  tache   Taches @relation(fields: [tacheId], references: [id])
+
+  typePermission TypePermission
+}
+
+enum TypePermission {
+  MODIFIER
+  SUPPRIMER
+}
+
+enum Genre {
+  HOMME
+  FEMME
+}
+
+model Historique {
+  id         Int        @id @default(autoincrement())
+  action     TypeAction
+  dateAction DateTime   @default(now())
+
+  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id])
+  utilisateurId Int
+
+  tache   Taches @relation(fields: [tacheId], references: [id])
+  tacheId Int
+}
+
+enum TypeAction {
+  MODIFICATION
+  SUPPRESSION
+  LECTURE
 }
 ```
 
@@ -138,16 +189,20 @@ enum Etat {
 
 - [`UtilisateurController`](src/controllers/UtilisateurController.ts) : Gère l'inscription, la connexion, la récupération, la modification et la suppression des utilisateurs.
 - [`TacheController`](src/controllers/TacheController.ts) : Gère la création, la récupération, la modification et la suppression des tâches.
+- [`PermissionController`](src/controllers/PermissionController.ts) : Gère les permissions sur les tâches.
+- [`UploadController`](src/controllers/UploadController.ts) : Gère les téléchargements de fichiers.
 
 ### 2. Services (`src/services/`)
 
 - [`UtilisateurService`](src/services/UtilisateurService.ts) : Logique métier liée aux utilisateurs (hash du mot de passe, génération du JWT, etc.).
 - [`TacheService`](src/services/TacheService.ts) : Logique métier liée aux tâches.
+- [`PermissionService`](src/services/PermissionService.ts) : Logique métier liée aux permissions.
 
 ### 3. Repositories (`src/repositories/`)
 
 - [`UtilisateurRepository`](src/repositories/UtilisateurRepository.ts) : Accès aux données utilisateurs via Prisma.
 - [`TacheRepository`](src/repositories/TacheRepository.ts) : Accès aux données tâches via Prisma.
+- [`PermissionRepository`](src/repositories/PermissionRepository.ts) : Accès aux données permissions via Prisma.
 - [`IRepository`](src/repositories/IRepository.ts) : Interface générique pour les repositories.
 
 ### 4. Middlewares (`src/middlewares/`)
@@ -157,6 +212,7 @@ enum Etat {
 ### 5. Validation (`src/validators/`)
 
 - [`Utilisateur.ts`](src/validators/Utilisateur.ts) : Schémas de validation Zod pour les utilisateurs (création, connexion).
+- [`taches.ts`](src/validators/taches.ts) : Schémas de validation Zod pour les tâches.
 
 ---
 
@@ -183,6 +239,19 @@ enum Etat {
 - `PUT /api/taches/:id` : Met à jour une tâche
 - `DELETE /api/taches/:id` : Supprime une tâche
 
+### Permissions (protégées par JWT)
+
+- `GET /api/permissions` : Liste toutes les permissions
+- `GET /api/permissions/:id` : Récupère une permission par ID
+- `POST /api/permissions` : Crée une permission
+- `PUT /api/permissions/:id` : Met à jour une permission
+- `DELETE /api/permissions/:id` : Supprime une permission
+
+### Téléchargements
+
+- `POST /api/upload` : Télécharge un fichier (image ou audio)
+- `GET /uploads/:filename` : Accède à un fichier téléchargé
+
 ### Exemple de requête protégée
 
 ```http
@@ -193,7 +262,9 @@ Content-Type: application/json
 {
   "titre": "Ma nouvelle tâche",
   "description": "Description de la tâche",
-  "statut": "A_FAIRE"
+  "statut": "A_FAIRE",
+  "dateDebut": "2023-10-01T00:00:00Z",
+  "dateFin": "2023-10-05T00:00:00Z"
 }
 ```
 
@@ -201,7 +272,7 @@ Content-Type: application/json
 
 ## Sécurité & Authentification
 
-- Les routes `/api/taches` sont protégées par un middleware JWT ([`AuthMiddleware`](src/middlewares/AuthMiddleware.ts)).
+- Les routes `/api/taches`, `/api/permissions` sont protégées par un middleware JWT ([`AuthMiddleware`](src/middlewares/AuthMiddleware.ts)).
 - Le mot de passe utilisateur est hashé avec bcrypt avant stockage.
 - Le token JWT contient l'`id` et l'`email` de l'utilisateur.
 
@@ -227,7 +298,5 @@ Content-Type: application/json
 
 ---
 
-**Auteur** :  par Anna Khadidiatou Sock
-Mini framework Express/TypeScript/Prisma pour la gestion de tâches.
-
-
+**Auteur** : Anna Khadidiatou Sock  
+API backend Express/TypeScript/Prisma pour la gestion de tâches avec permissions et historique.

@@ -1,6 +1,7 @@
-import {  Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import useUserTask from "../contexts/userTasks/useUserTask";
 import Audio from "./Audio";
+import Upload from "../inscriptions/Upload";
 
 export default function AddTask() {
   const {
@@ -11,8 +12,6 @@ export default function AddTask() {
     formData,
     setFormData,
   } = useUserTask();
-
-  
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-30 flex items-center justify-center p-4">
@@ -75,30 +74,42 @@ export default function AddTask() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block mb-2 text-sm font-medium opacity-80">Date de début</label>
+              <label className="block mb-2 text-sm font-medium opacity-80">
+                Date de début
+              </label>
               <input
                 type="date"
                 value={formData.dateDebut || ""}
-                onChange={(e) => setFormData(prev => ({ ...prev, dateDebut: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    dateDebut: e.target.value,
+                  }))
+                }
                 max={formData.dateFin || undefined}
                 className="w-full bg-transparent border-b-2 border-gray-700 focus:border-black outline-none py-3"
               />
             </div>
             <div>
-              <label className="block mb-2 text-sm font-medium opacity-80">Date de fin</label>
+              <label className="block mb-2 text-sm font-medium opacity-80">
+                Date de fin
+              </label>
               <input
                 type="date"
                 value={formData.dateFin || ""}
-                onChange={(e) => setFormData(prev => ({ ...prev, dateFin: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, dateFin: e.target.value }))
+                }
                 min={formData.dateDebut || undefined}
                 className="w-full bg-transparent border-b-2 border-gray-700 focus:border-black outline-none py-3"
               />
             </div>
           </div>
+              <Upload></Upload>
           <div className="flex items-center justify-evenly">
-                <Audio></Audio>
-          </div>
-          <div className="flex gap-4 pt-6">
+             <Audio></Audio>
+            </div>
+          <div className="flex gap-4">
             <button
               onClick={onSubmit}
               disabled={isLoading}

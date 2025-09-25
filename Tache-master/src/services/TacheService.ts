@@ -18,6 +18,7 @@ export class TacheService {
       description: data.description,
       statut: data.statut ?? "EN_COURS",
       audioPath: data.audioPath === undefined ? null : data.audioPath,
+      image: data.image === undefined ? null : data.audioPath,
       dateDebut: data.dateDebut === undefined ? null : data.dateDebut,
       dateFin: data.dateFin === undefined ? null : data.dateFin,
       utilisateurId: data.utilisateurId,
@@ -30,10 +31,13 @@ export class TacheService {
     const taches = await this.tacheRepo.findAll();
     taches.forEach((tache) => {
       console.log();
-      if (tache.audioPath) {
+      if (tache.audioPath && tache.image) {
         tache.audioPath = `${req.protocol}://${req.get("host")}/${
           tache.audioPath
         }`;
+        tache.image= `${req.protocol}://${req.get("host")}/uploads/${
+          tache.image
+        }`
       }
     });
     return taches;

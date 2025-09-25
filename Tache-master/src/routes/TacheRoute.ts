@@ -16,13 +16,15 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage });
-
+const upload = multer({ storage }).fields([
+  { name: "audio", maxCount: 1 },
+  { name: "image", maxCount: 1 }
+]);
 
 const tacheRoute = Router();
 const tacheController = new TacheController();
 
-tacheRoute.post("/",upload.single("audio"), TacheController.create.bind(tacheController));
+tacheRoute.post("/",upload, TacheController.create.bind(tacheController));
 tacheRoute.get("/", TacheController.findAll.bind(tacheController));
 tacheRoute.get("/:id", TacheController.findById.bind(tacheController));
 tacheRoute.put(

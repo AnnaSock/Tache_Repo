@@ -104,28 +104,38 @@ export default function MyUserTaskProvider({ children }) {
   
 
   useEffect(() => {
-    async function fetchTaches() {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:3000/api/taches", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (!response.ok) {
-          throw new Error(`Erreur HTTP ${response.status}`);
-        }
-        const data = await response.json();
-        setTaches(data);
-      } catch (err) {
-        setError(err.message || "Erreur inconnue");
+  async function fetchTaches() {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:3000/api/taches", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP ${response.status}`);
       }
+      const data = await response.json();
+
+      // Vérifier que chaque tâche contient image
+      if (data && Array.isArray(data.data)) {
+        data.data = data.data.map(tache => ({
+          ...tache,
+          image: tache.image || null, // Assurez-vous que image est présent ou null
+        }));
+      }
+
+      setTaches(data);
+    } catch (err) {
+      setError(err.message || "Erreur inconnue");
     }
+  }
 
-    fetchTaches();
-  }, [user, refreshTache]);
+  fetchTaches();
+}, [user, refreshTache]);
 
-  const createTask = async (taskData, audioBlob) => {
+
+  const createTask = async (taskData, audioBlob, imageFile) => {
   setIsLoading(true);
   try {
     const token = localStorage.getItem("token");
@@ -142,6 +152,10 @@ export default function MyUserTaskProvider({ children }) {
     if (audioBlob) {
       // Le 3e param est le nom du fichier
       formData.append("audio", audioBlob, "recording.webm");
+    }
+
+    if (imageFile) {
+      formData.append("image", imageFile, imageFile.name);
     }
 
     const response = await fetch("http://localhost:3000/api/taches", {
@@ -200,14 +214,14 @@ export default function MyUserTaskProvider({ children }) {
     setFormData({ titre: "", description: "", statut: "A_FAIRE" });
   };
 
-  const handleSubmit = async (formData, audioBlob) => {
+  const handleSubmit = async (formData, audioBlob, imageFile) => {
   if (!formData.titre.trim()) return;
 
   if (editingTask) {
     await updateTask(editingTask.id, formData);
     setEditingTask(null);
   } else {
-    await createTask(formData, audioBlob);
+    await createTask(formData, audioBlob, imageFile);
   }
 
   setFormData({ titre: "", description: "", statut: "A_FAIRE", dateDebut: "", dateFin: "" });
@@ -215,6 +229,7 @@ export default function MyUserTaskProvider({ children }) {
   setAudioUrl(null);
   setShowAddForm(false);
 };
+
 
 
   return (

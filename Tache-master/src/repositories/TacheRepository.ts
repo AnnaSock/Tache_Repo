@@ -30,6 +30,7 @@ export class TacheRepository implements IRepository<Taches> {
     description: data.description,
     statut: data.statut,
     audioPath: data.audioPath === undefined ? null : data.audioPath,
+    image: data.image === undefined ? null : data.audioPath,
     dateDebut: data.dateDebut === undefined ? null : data.dateDebut,
     dateFin: data.dateFin === undefined ? null : data.dateFin,
     utilisateur: {
