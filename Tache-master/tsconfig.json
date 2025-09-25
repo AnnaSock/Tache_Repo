@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",                // version JS générée
+    "module": "ESNext",              // important pour éviter l'erreur .ts
+    "moduleResolution": "Node",        // résolution classique Node.js
+    "rootDir": "./src",                // dossier source
+    "outDir": "./dist",                // dossier de build
+    "strict": true,                    // vérifications strictes
+    "esModuleInterop": true,           // permet import express from "express"
+    "skipLibCheck": true               // ignore les erreurs dans node_modules
+  },
+  "include": ["src"],                  // compile uniquement le code source
+  "exclude": ["node_modules", "dist"]  // ignore les builds et deps
+}

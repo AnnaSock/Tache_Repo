@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE `Taches` ADD COLUMN `audioPath` VARCHAR(191) NULL,
+    ADD COLUMN `dateDebut` DATETIME(3) NULL,
+    ADD COLUMN `dateFin` DATETIME(3) NULL,
+    MODIFY `titre` VARCHAR(191) NULL;
